@@ -1,2 +1,2 @@
 main:
-	gcc -Wall -o cursedoku main.c -lncurses
+	gcc -Wall -o build/cursedoku main.c menu.c -lncurses
