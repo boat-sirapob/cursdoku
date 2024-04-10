@@ -2,9 +2,17 @@
 #include <string.h>
 #include "menu.h"
 
+const int MENU_PADDING_X = 3;
+const int MENU_PADDING_Y = 2;
+
+// hacky??
+void menu_quit() {}
+void menu_stub() {}
+
 void initialize_menu(MenuWindow* menu, char title[], MenuChoice choices[], int num_choices) {
 
     // calculate width and height of menu
+    menu->width = 0;
     int cur_width;
     for (int i = 0; i < num_choices; i++) {
 		cur_width = strlen(choices[i].text);
@@ -13,7 +21,7 @@ void initialize_menu(MenuWindow* menu, char title[], MenuChoice choices[], int n
 		}
 	}
     menu->width = menu->width + MENU_PADDING_X*2;
-    menu->height = num_choices + 2 + MENU_PADDING_Y*2; // add one for the title and one for the exit choice
+    menu->height = num_choices + 1 + MENU_PADDING_Y*2;
 
     int screen_width;
 	int screen_height;
@@ -42,16 +50,10 @@ void print_menu(MenuWindow* menu,  int highlight) {
 		if (i == highlight) {
 			wattron(menu->window, A_REVERSE);
 		}
-        mvwprintw(menu->window, MENU_PADDING_Y + 1 + i, MENU_PADDING_X, "%d %s", i + 1, menu->choices[i].text);
+        mvwprintw(menu->window, MENU_PADDING_Y + 1 + i, MENU_PADDING_X, "%s", menu->choices[i].text);
         wattroff(menu->window, A_REVERSE);
 	}
-    // draw exit choice
-    if (highlight == menu->num_choices) {
-        wattron(menu->window, A_REVERSE);
-    }
-    mvwprintw(menu->window, MENU_PADDING_Y + 1 + menu->num_choices, MENU_PADDING_X, "%d Exit", menu->num_choices + 1);
-    wattroff(menu->window, A_REVERSE);
-    
+
 	wrefresh(menu->window);
 }
 
@@ -71,6 +73,7 @@ void run_menu(MenuWindow* menu) {
 	int chr;
 	int selected = 0;
 	while (running) {
+
 		print_menu(menu, selected);
 
 		chr = wgetch(menu->window);
@@ -84,21 +87,19 @@ void run_menu(MenuWindow* menu) {
 				break;
 			}
 			case KEY_DOWN: {
-				if (selected <= menu->num_choices) {
+				if (selected < menu->num_choices-1) {
 					selected += 1;
 				}
 				break;
 			}
 			case '\n': {
-				// mvwprintw(stdscr, 0, 0, "Enter pressed. Selected: %d", selected);
-                if (menu->choices[selected].callback == menu_quit) {
+                const menu_callback callback = menu->choices[selected].callback;
+                if (callback == menu_quit) {
                     running = false;
-                }
-
-				if (selected < menu->num_choices) {
-                    menu->choices[selected].callback();
+                } else if (callback == menu_stub) {
+                    mvprintw(0, 0, "Menu not implemented: %s", menu->choices[selected].text);
                 } else {
-                    running = false;
+                    menu->choices[selected].callback();
                 }
                 break;
 			}
@@ -116,6 +117,5 @@ void run_menu(MenuWindow* menu) {
 		}
 
 		refresh();
-
 	}
 }

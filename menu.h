@@ -3,9 +3,6 @@
 
 #include <ncurses.h>
 
-const int MENU_PADDING_X = 3;
-const int MENU_PADDING_Y = 2;
-
 typedef void (*menu_callback)(void);
 
 typedef struct MenuChoice {
@@ -24,6 +21,7 @@ typedef struct MenuWindow {
 } MenuWindow;
 
 void menu_quit();
+void menu_stub();
 
 void initialize_menu(MenuWindow* menu, char title[], MenuChoice choices[], int num_choices);
 void print_menu(MenuWindow* menu,  int highlight);

@@ -1,29 +1,26 @@
 #include <ncurses.h>
 #include "menu.h"
 
-void do_nothing() {}
-
-char main_menu_title[] = "-= SUDOKU =-";
-MenuChoice main_menu_choices[] = {
-	{"Play Random Board", do_nothing}, 
-	{"Solve Board      ", do_nothing}
-};
-const int main_menu_num_choices = 2;
-
 int main() {
 	
 	// initialization
     initscr();              // start curses mode
+	// raw();
 	cbreak();               // disable line buffering
 	keypad(stdscr, TRUE);   // for arrow keys and function keys
 	noecho();               // prevent echoing user chars
 	curs_set(0);			// hide cursor
 
-	int screen_width;
-	int screen_height;
-	getmaxyx(stdscr, screen_height, screen_width);
-
+	// initialize main menu
 	MenuWindow main_menu;
+
+	char main_menu_title[] = "-= SUDOKU =-";
+	MenuChoice main_menu_choices[] = {
+		{"1 Play Random Board", menu_stub},
+		{"2 Solve Board      ", menu_stub},
+		{"3 Exit             ", menu_quit}
+	};
+	const int main_menu_num_choices = 3;
 
 	initialize_menu(
 		&main_menu,
