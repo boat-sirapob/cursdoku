@@ -2,6 +2,7 @@
 #define MENU_H
 
 #include <ncurses.h>
+#include "window.h"
 
 typedef void (*menu_callback)(void);
 
@@ -11,9 +12,7 @@ typedef struct MenuChoice {
 } MenuChoice;
 
 typedef struct MenuWindow {
-    WINDOW* window;
-    int width;
-    int height;
+    Window* window;
 
     char* title;
     MenuChoice* choices;
@@ -25,7 +24,6 @@ void menu_stub();
 
 void initialize_menu(MenuWindow* menu, char title[], MenuChoice choices[], int num_choices);
 void print_menu(MenuWindow* menu,  int highlight);
-void handle_menu_resize(MenuWindow* menu);
 void run_menu(MenuWindow* menu);
 
 #endif // MENU_H

@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <string.h>
 #include "menu.h"
+#include "window.h"
 
 const int MENU_PADDING_X = 3;
 const int MENU_PADDING_Y = 2;
@@ -12,24 +13,21 @@ void menu_stub() {}
 void initialize_menu(MenuWindow* menu, char title[], MenuChoice choices[], int num_choices) {
 
     // calculate width and height of menu
-    menu->width = 0;
+    int width = strlen(title);
     int cur_width;
     for (int i = 0; i < num_choices; i++) {
 		cur_width = strlen(choices[i].text);
-		if (cur_width > menu->width) {
-			menu->width = cur_width;
+		if (cur_width > width) {
+			width = cur_width;
 		}
 	}
-    menu->width = menu->width + MENU_PADDING_X*2;
-    menu->height = num_choices + 1 + MENU_PADDING_Y*2;
+    width = width + MENU_PADDING_X*2;
+    int height = num_choices + 1 + MENU_PADDING_Y*2;
 
-    int screen_width;
-	int screen_height;
-	getmaxyx(stdscr, screen_height, screen_width);
+	Window* window = initialize_window(width, height);
+	center_window(window);
 
-    menu->window = newwin(menu->height, menu->width, (screen_height-menu->height) / 2, (screen_width-menu->width) / 2);
-	keypad(menu->window, TRUE);
-
+	menu->window = window;
     menu->title = title;
     menu->choices = choices;
     menu->num_choices = num_choices;
@@ -37,38 +35,30 @@ void initialize_menu(MenuWindow* menu, char title[], MenuChoice choices[], int n
 
 void print_menu(MenuWindow* menu,  int highlight) {
 	// draw border around window
-	wborder(menu->window, '|', '|', '-', '-', '+', '+', '+', '+');
+	wborder(menu->window->window, '|', '|', '-', '-', '+', '+', '+', '+');
 
 	// draw title
-	wattron(menu->window, A_BOLD);
-	const int TITLE_X = (menu->width - strlen(menu->title)) / 2;
-	mvwprintw(menu->window, MENU_PADDING_Y, TITLE_X, "%s", menu->title);
-	wattroff(menu->window, A_BOLD);
+	wattron(menu->window->window, A_BOLD);
+	const int TITLE_X = (menu->window->width - strlen(menu->title)) / 2;
+	mvwprintw(menu->window->window, MENU_PADDING_Y, TITLE_X, "%s", menu->title);
+	wattroff(menu->window->window, A_BOLD);
 
 	// draw choices
 	for (int i = 0; i < menu->num_choices; i++) {
 		if (i == highlight) {
-			wattron(menu->window, A_REVERSE);
+			wattron(menu->window->window, A_REVERSE);
 		}
-        mvwprintw(menu->window, MENU_PADDING_Y + 1 + i, MENU_PADDING_X, "%s", menu->choices[i].text);
-        wattroff(menu->window, A_REVERSE);
+        mvwprintw(menu->window->window, MENU_PADDING_Y + 1 + i, MENU_PADDING_X, "%s", menu->choices[i].text);
+        wattroff(menu->window->window, A_REVERSE);
 	}
 
-	wrefresh(menu->window);
-}
-
-void handle_menu_resize(MenuWindow* menu) {
-    int screen_height;
-    int screen_width;
-
-    getmaxyx(stdscr, screen_height, screen_width);
-    
-    // mvwprintw(stdscr, 0, 0, "%d %d", menu_x, menu_y);
-
-    mvwin(menu->window, (screen_height - menu->height) / 2, (screen_width - menu->width) / 2);
+	wrefresh(menu->window->window);
 }
 
 void run_menu(MenuWindow* menu) {
+	clear();
+	refresh();
+
 	bool running = true;
 	int chr;
 	int selected = 0;
@@ -76,7 +66,7 @@ void run_menu(MenuWindow* menu) {
 
 		print_menu(menu, selected);
 
-		chr = wgetch(menu->window);
+		chr = wgetch(menu->window->window);
 		clear();
 
 		switch (chr) {
@@ -104,7 +94,7 @@ void run_menu(MenuWindow* menu) {
                 break;
 			}
 			case KEY_RESIZE: {
-				handle_menu_resize(menu);
+				center_window(menu->window);
 				break;
 			}
 			case KEY_EXIT: {
