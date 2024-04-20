@@ -36,19 +36,22 @@ void print_board(Window* board_window, SudokuGrid* board, int selected_x, int se
 	mvwaddch(window, 7, 6, ACS_PLUS);
 	mvwaddch(window, 7, 14, ACS_PLUS);
 
-	// valid cols and rows
+	// check validity
 	uint16_t invalid_cols = 0b000000000;
 	uint16_t invalid_rows = 0b000000000;
 	uint16_t invalid_blocks = 0b000000000;
 
+	// check cols
 	for (int col = 0; col < 9; col++) {
 		invalid_cols |= (!is_col_valid(board, col)) << col;
 	}
 
+	// check rows
 	for (int row = 0; row < 9; row++) {
 		invalid_rows |= (!is_row_valid(board, row)) << row;
 	}
 
+	// check blocks
 	for (int block_row = 0; block_row < 3; block_row++) {
 		for (int block_col = 0; block_col < 3; block_col++) {
 			invalid_blocks |= (!is_block_valid(board, block_col, block_row)) << (block_row*3 + block_col);
@@ -66,9 +69,6 @@ void print_board(Window* board_window, SudokuGrid* board, int selected_x, int se
 		init_pair(CHANGEABLE_COLOR, COLOR_MAGENTA, -1);
 		init_pair(INVALID_COLOR, COLOR_RED, -1);
 	}
-
-	mvprintw(1, 0, "INVALID_COLS: %d", invalid_cols);
-	mvprintw(2, 0, "INVALID_ROWS: %d", invalid_rows);
 
 	// draw each number
 	bool invalid_row_flag = false;
@@ -130,8 +130,11 @@ void print_board(Window* board_window, SudokuGrid* board, int selected_x, int se
 
 	// board details
 	// 1. print number of cells filled
+	mvprintw(0, 0, "Filled Cells: %d/81", count_filled_cells(board));
 	// 2. print number of cols completed
+	mvprintw(1, 0, "Filled Cols: %d/9", count_filled_cols(board));
 	// 3. print number of rows completed
+	mvprintw(2, 0, "Filled Rows: %d/9", count_filled_rows(board));
 
 	// show possible numbers of current cell
 	if (SHOW_POSSIBLE_FLAG) {
@@ -172,11 +175,13 @@ void run_board(Window* window, SudokuGrid* board) {
 	bool running = true;
 	int chr;
 	while (running) {
+		// display board
 		print_board(window, board, selected_x, selected_y);
 
 		chr = wgetch(window->window);
 		clear();
 
+		// handle input
 		switch (chr) {
 			case KEY_UP: {
 				if (selected_y > 0) { selected_y -= 1; }
@@ -208,6 +213,14 @@ void run_board(Window* window, SudokuGrid* board) {
 				// TODO: let user select number to fill current cell
                 break;
 			}
+			case 's': {
+				// solve the board
+				if (solve_board(board, window) == -1) {
+					mvprintw(getmaxy(stdscr), 0, "Board is invalid - not solvable");
+					refresh();
+				}
+				break;
+			}
 			case KEY_RESIZE: {
 				center_window(window);
 				break;
@@ -220,7 +233,7 @@ void run_board(Window* window, SudokuGrid* board) {
 				break;
 			}
 		}
-		mvprintw(0, 0, "SELECTED: %d %d", selected_x, selected_y);
+		// mvprintw(0, 0, "SELECTED: %d %d", selected_x, selected_y);
 
 		refresh();
 	}
