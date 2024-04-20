@@ -13,7 +13,7 @@ typedef enum Difficulty {
 
 void play_board(Difficulty difficulty) {
 	// generate board
-	// ...
+	// TODO: ...
 
 	// example board
 	SudokuGrid board;

@@ -208,7 +208,7 @@ int count_filled_cols(SudokuGrid* board) {
     return count;
 }
 
-// todo: move this to utils file
+// TODO: move this to utils file
 void sleep_ms(int ms) {
     struct timespec time_sleep;
 
@@ -228,10 +228,7 @@ bool solve_helper(SudokuGrid* board, Window* board_window, int starting_cell) {
     // x = cell MOD 9
     // y = cell DIV 9
 
-    // 1. go to first empty cell
-    // 2. try first possible value
-    // 3. recurse to next empty cell
-    // 4. if empty cell has no possible value then return
+    // TODO: maybe go through and fill each cell with only one possible value first?
 
     // go to first empty cell
     while (starting_cell < 9*9) {
@@ -267,7 +264,7 @@ bool solve_helper(SudokuGrid* board, Window* board_window, int starting_cell) {
         
         // display solve process
         if (DISPLAY_SOLVE && board_window != NULL) {
-            print_board(board_window, board);
+            print_board(board_window, board, -1, -1);
             wrefresh(board_window->window);
             
             sleep_ms(SOLVE_DELAY_MS);        
@@ -277,11 +274,12 @@ bool solve_helper(SudokuGrid* board, Window* board_window, int starting_cell) {
             return true;
         }
     }
-
-    print_board(board_window, board);
-    wrefresh(board_window->window);
-    
-    sleep_ms(SOLVE_DELAY_MS);        
+    if (DISPLAY_SOLVE && board_window != NULL) {
+        print_board(board_window, board, -1, -1);
+        wrefresh(board_window->window);
+        
+        sleep_ms(SOLVE_DELAY_MS);        
+    }
 
     // went through every value, not solvable so backtrack
     board->grid[empty_cell_row][empty_cell_col] = 0;
